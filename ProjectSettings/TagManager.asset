@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - ramp
+  - bike
   layers:
   - Default
   - TransparentFX
