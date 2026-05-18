@@ -23,14 +23,26 @@ public class SlingShot : MonoBehaviour
 
     [SerializeField] private LayerMask bikePrefabMask;
 
-    public enum State { elasticBandIdle, elasticBandDragging, elasticBandReleased}
-    public State gameState = State.elasticBandIdle;
+    public enum State { bikeIdle, bikedragged, bikelaunched, bikeStopped}
+    public State gameState = State.bikeIdle;
 
     private Plane dragPlane;
 
-    [SerializeField] private float dragSensitivity = 0.5f; // tune 0.1 to 1.0
+    [SerializeField] private float dragSensitivity = 0.5f; 
     [SerializeField] private WheelCollider[] wheelColliders;
     [SerializeField] private float stabilizationForce = 50f;
+
+    [Header("Launch Randomness")]
+    public float randomSideForce = 2f;      
+    public float minFlipTorque = 1f;        
+    public float maxFlipTorque = 8f;        
+    public float randomYawTorque = 1f;      
+    public float randomSideLean = 2f;       
+
+    [Header("Air Physics")]
+    public float airSideForce = 1.5f;       
+    public float balanceTorque = 0.05f;     
+
 
     private void Start()
     {
@@ -43,12 +55,15 @@ public class SlingShot : MonoBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
+        {
             FullReset();
+        }
+
 
         switch (gameState)
         {
-            case State.elasticBandIdle: HandleIdle(); break;
-            case State.elasticBandDragging: HandleDragging(); break;
+            case State.bikeIdle: HandleIdle(); break;
+            case State.bikedragged: HandleDragging(); break;
         }
     }
 
@@ -58,10 +73,10 @@ public class SlingShot : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, bikePrefabMask))
         {
-            dragPlane = new Plane(Vector3.up, drawFrom.position);
-            gameState = State.elasticBandDragging;
+            dragPlane = new Plane(Vector3.up, drawFrom.position); // create a invisible plane at slingshot height
+            gameState = State.bikedragged;
             rigidBodyOfProjectile.isKinematic = true;
-            SetWheelColliders(false);
+            //SetWheelColliders(false);
         }
     }
 
@@ -74,25 +89,24 @@ public class SlingShot : MonoBehaviour
         }
 
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (!dragPlane.Raycast(ray, out float enter)) return;
+        if (!dragPlane.Raycast(ray, out float enter)) return; 
 
-        Vector3 worldPoint = ray.GetPoint(enter);
-        worldPoint.y = drawFrom.position.y;
+        Vector3 worldPoint = ray.GetPoint(enter); // gets the world position fo mouse by projecting the ray on plane 
+        worldPoint.y = drawFrom.position.y; 
 
-        Vector3 offset = (worldPoint - drawFrom.position) * dragSensitivity;
+        Vector3 offset = (worldPoint - drawFrom.position) * dragSensitivity; //gets direction and distance of pull
 
-        // Block forward pull
-        float forwardAmount = Vector3.Dot(offset, drawFrom.forward);
+        float forwardAmount = Vector3.Dot(offset, drawFrom.forward); // calculate dot product to get the direction of pull
         if (forwardAmount > 0f)
             offset -= forwardAmount * drawFrom.forward;
 
         if (offset.magnitude > maxPullDistance)
-            offset = offset.normalized * maxPullDistance;
+            offset = offset.normalized * maxPullDistance; // clamp the maximum pull distance
 
         projectile.position = drawFrom.position + offset;
 
         Vector3 toCenter = drawFrom.position - projectile.position;
-        if (toCenter != Vector3.zero)
+        if (toCenter != Vector3.zero) 
             projectile.forward = toCenter.normalized;
 
         UpdateBand();
@@ -105,13 +119,27 @@ public class SlingShot : MonoBehaviour
         float forceMagnitude = stretch * shotForce;
 
         rigidBodyOfProjectile.isKinematic = false;
-        rigidBodyOfProjectile.AddForce(launchDir * forceMagnitude, ForceMode.Impulse);
 
-        gameState = State.elasticBandReleased;
+        
+        rigidBodyOfProjectile.AddForce(launchDir * forceMagnitude, ForceMode.Impulse);//launch force
+
+        
+        float sideTwist = UnityEngine.Random.Range(-randomSideForce, randomSideForce);//Random side force 
+        rigidBodyOfProjectile.AddForce(drawFrom.right * sideTwist, ForceMode.Impulse);
+
+        Vector3 randomTorque = new Vector3(
+            UnityEngine.Random.Range(minFlipTorque, maxFlipTorque),   // front or back flip
+            UnityEngine.Random.Range(-randomYawTorque, randomYawTorque), // side spin
+            UnityEngine.Random.Range(-randomSideLean, randomSideLean)    // side lean
+        );
+        rigidBodyOfProjectile.AddTorque(randomTorque, ForceMode.Impulse);
+
+        gameState = State.bikelaunched;
         ResetBand();
-
         //StartCoroutine(EnableWheelsWhenGrounded());
+        StartCoroutine(ApplyAirPhysics()); 
     }
+
 
     private void FullReset()
     {
@@ -134,8 +162,8 @@ public class SlingShot : MonoBehaviour
         });
 
         rigidBodyOfProjectile.isKinematic = false;
-        StartCoroutine(EnableWheelsAfterReset());
-        gameState = State.elasticBandIdle;
+        //StartCoroutine(EnableWheelsAfterReset());
+        gameState = State.bikeIdle;
     }
 
     private void UpdateBand()
@@ -143,7 +171,7 @@ public class SlingShot : MonoBehaviour
         elasticBand.SetPositions(new Vector3[3]
         {
             leftPoint.position,
-            projectile.position,
+            projectile.position, // keep updating middle point of band to follow bike
             rightPoint.position
         });
     }
@@ -163,35 +191,29 @@ public class SlingShot : MonoBehaviour
     {
         foreach (WheelCollider wc in wheelColliders)
         {
-           
             wc.enabled = enabled;
-            Debug.Log(wc.enabled);
+            //Debug.Log(wc.enabled);
         }
     }
-
-    private IEnumerator EnableWheelsWhenGrounded()
+    private IEnumerator ApplyAirPhysics()
     {
-        while (true)
+        while (gameState == State.bikelaunched)
         {
             yield return new WaitForFixedUpdate();
 
-            // Increased from 1.2f — needs to reach the ground from bike center
-            bool nearGround = Physics.Raycast(projectile.position, Vector3.down, 2.0f);
-            bool movingDownOrStopped = rigidBodyOfProjectile.linearVelocity.y <= 0.5f;
+            rigidBodyOfProjectile.angularDamping = 0.5f; // resist large spin
+            rigidBodyOfProjectile.linearDamping = 0.1f; // let's have slight air resistance
 
-            if (nearGround && movingDownOrStopped)
+            //randomly sideways nudge
+            if (UnityEngine.Random.value < 0.05f) 
             {
-                SetWheelColliders(true);
-                yield break;
+                Vector3 randomAirForce = new Vector3(
+                    UnityEngine.Random.Range(-airSideForce, airSideForce),
+                    0f,
+                    0f
+                );
+                rigidBodyOfProjectile.AddForce(randomAirForce, ForceMode.Force);
             }
         }
-    }
-
-    private IEnumerator EnableWheelsAfterReset()
-    {
-        yield return new WaitForFixedUpdate();
-        yield return new WaitForFixedUpdate();
-        yield return new WaitForFixedUpdate();
-        SetWheelColliders(true);
     }
 }

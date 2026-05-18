@@ -30,7 +30,7 @@ public class Ramp : MonoBehaviour
 
     private IEnumerator Wait()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.2f);
         slingShot.SetWheelColliders(true);
     }
 }

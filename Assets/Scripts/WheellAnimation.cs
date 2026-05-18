@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using System;
 using UnityEngine;
 
 public class WheellAnimation : MonoBehaviour
@@ -16,10 +17,12 @@ public class WheellAnimation : MonoBehaviour
     [SerializeField] private float pullRotationSpeed = 180f;  
     [SerializeField] private Rigidbody bikeRigidbody;
 
+
     private void Update()
     {
         HandleRotationOfWheel();
     }
+
 
     private void HandleRotationOfWheel()
     {
@@ -27,12 +30,11 @@ public class WheellAnimation : MonoBehaviour
         {
             if (wheels[i].wheelMesh == null) continue;
 
-            if (slingShot.gameState == SlingShot.State.elasticBandDragging)
+            if (slingShot.gameState == SlingShot.State.bikedragged)
             {
- 
-                wheels[i].wheelMesh.Rotate(Vector3.right, -pullRotationSpeed * Time.deltaTime);
+                wheels[i].wheelMesh.Rotate(Vector3.right, -pullRotationSpeed * Time.deltaTime); //rotate wheel backwards
             }
-            else if (slingShot.gameState == SlingShot.State.elasticBandReleased)
+            else if (slingShot.gameState == SlingShot.State.bikelaunched)
             {
                 if (wheels[i].wheelCollider != null && wheels[i].wheelCollider.enabled)
                 {
@@ -41,10 +43,11 @@ public class WheellAnimation : MonoBehaviour
                 }
                 else
                 {
-                    float speed = bikeRigidbody.linearVelocity.magnitude;
-                    float wheelRadius = 0.35f; // adjust to match your wheel size
-                    float rpm = (speed / (2 * Mathf.PI * wheelRadius)) * 360f;
-                    wheels[i].wheelMesh.Rotate(Vector3.right, rpm * Time.deltaTime);
+                    Debug.Log("...");
+                    //float speed = bikeRigidbody.linearVelocity.magnitude;
+                    //float wheelRadius = 0.35f; // adjust to match your wheel size
+                    //float rpm = (speed / (2 * Mathf.PI * wheelRadius)) * 360f;
+                    //wheels[i].wheelMesh.Rotate(Vector3.right, rpm * Time.deltaTime);
                 }
             }
            
