@@ -30,11 +30,11 @@ public class WheellAnimation : MonoBehaviour
         {
             if (wheels[i].wheelMesh == null) continue;
 
-            if (slingShot.gameState == SlingShot.State.bikedragged)
+            if (slingShot.gameState == SlingShot.State.bikeDragged)
             {
                 wheels[i].wheelMesh.Rotate(Vector3.right, -pullRotationSpeed * Time.deltaTime); //rotate wheel backwards
             }
-            else if (slingShot.gameState == SlingShot.State.bikelaunched)
+            else if (slingShot.gameState == SlingShot.State.bikeLaunched)
             {
                 if (wheels[i].wheelCollider != null && wheels[i].wheelCollider.enabled)
                 {
@@ -43,7 +43,7 @@ public class WheellAnimation : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("...");
+                    //Debug.Log("...");
                     //float speed = bikeRigidbody.linearVelocity.magnitude;
                     //float wheelRadius = 0.35f; // adjust to match your wheel size
                     //float rpm = (speed / (2 * Mathf.PI * wheelRadius)) * 360f;

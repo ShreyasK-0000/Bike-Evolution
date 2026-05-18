@@ -38,7 +38,7 @@ public class HighScore : MonoBehaviour
 
     private void HandleBikeLaunched()
     {
-        if(slingshot.gameState == SlingShot.State.bikelaunched)
+        if(slingshot.gameState == SlingShot.State.bikeLaunched)
         {
             bikeRigidbody = bike.GetComponent<Rigidbody>();
             //if bike is moving then calculate realtime distance and show

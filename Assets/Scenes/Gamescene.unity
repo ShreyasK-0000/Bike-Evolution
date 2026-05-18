@@ -1601,30 +1601,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2410ac8df81919d428b70b60e3f39297, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlingShot
+  bikeTransform: {fileID: 336675416}
+  gameState: 0
   maxPullDistance: 2
-  shotForce: 2500
+  launchForce: 2500
+  bikeDragSensitivity: 0.5
+  randomSideDrfitForce: 1
+  minFrontFlipTorque: 1
+  maxFrontFlipTorque: 4
+  randomLeftRightSpinTorque: 1
+  randomSideLeanTorque: 2
+  randomNudgeInAir: 1.5
   leftPoint: {fileID: 107943263}
   rightPoint: {fileID: 1047775708}
-  projectile: {fileID: 336675416}
   drawFrom: {fileID: 1294881392}
   elasticBand: {fileID: 1885242559}
-  rigidBodyOfProjectile: {fileID: 1942695538}
-  bikePrefabMask:
+  bikeRigidbody: {fileID: 1942695538}
+  bikeLayerMask:
     serializedVersion: 2
     m_Bits: 128
-  gameState: 0
-  dragSensitivity: 0.5
   wheelColliders:
   - {fileID: 336675418}
   - {fileID: 336675417}
-  stabilizationForce: 50
-  randomSideForce: 2
-  minFlipTorque: 0.1
-  maxFlipTorque: 3
-  randomYawTorque: 1
-  randomSideLean: 2
-  airSideForce: 1.5
-  balanceTorque: 0.05
 --- !u!54 &1942695538 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 6427445260055759687, guid: 77f962d883bd39d4e9e53b1f64827f9a, type: 3}
