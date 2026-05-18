@@ -16,7 +16,7 @@ public class SlingShot : MonoBehaviour
 
     [SerializeField] public Transform projectile;
     [SerializeField] private Transform drawFrom;
-
+        
     [SerializeField] private LineRenderer elasticBand;
 
     [SerializeField] private Rigidbody rigidBodyOfProjectile;
@@ -201,7 +201,7 @@ public class SlingShot : MonoBehaviour
         {
             yield return new WaitForFixedUpdate();
 
-            rigidBodyOfProjectile.angularDamping = 0.5f; // resist large spin
+            rigidBodyOfProjectile.angularDamping = 0.2f; // resist large spin
             rigidBodyOfProjectile.linearDamping = 0.1f; // let's have slight air resistance
 
             //randomly sideways nudge

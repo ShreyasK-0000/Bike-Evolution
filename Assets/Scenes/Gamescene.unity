@@ -497,7 +497,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6427445260055759687, guid: 77f962d883bd39d4e9e53b1f64827f9a, type: 3}
       propertyPath: m_CenterOfMass.y
-      value: 0.3
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 6427445260055759687, guid: 77f962d883bd39d4e9e53b1f64827f9a, type: 3}
       propertyPath: m_CenterOfMass.z
